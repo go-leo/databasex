@@ -1,4 +1,4 @@
-package databasex
+package sqlx
 
 import "testing"
 

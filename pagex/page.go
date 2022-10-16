@@ -2,9 +2,10 @@ package pagex
 
 import (
 	"errors"
+
+	"github.com/go-leo/databasex/sqlx"
 )
 
-// Deprecated: Do not use. use databasex/page.go instead.
 type Page struct {
 	// pageNum 页码，从1开始
 	pageNum uint64
@@ -24,31 +25,28 @@ type Page struct {
 	countColumn string
 	// orderBy 排序
 	orderBy string
+	// orderByOnly 只增加排序
+	orderByOnly bool
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) init() {
 
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) apply(opts ...Option) {
 	for _, opt := range opts {
 		opt(p)
 	}
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 type Option func(p *Page)
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func Count(count bool) Option {
 	return func(p *Page) {
 		p.count = count
 	}
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func CountColumn(countColumn string) Option {
 	return func(p *Page) {
 		p.countColumn = countColumn
@@ -56,23 +54,28 @@ func CountColumn(countColumn string) Option {
 }
 
 // OrderBy 设置排序字段
-// Deprecated: Do not use. use databasex/page.go instead.
 func OrderBy(orderBy string) Option {
 	return func(p *Page) {
-		// TODO 增加 SQL 注入校验
+		if sqlx.CheckSqlInjection(orderBy, false) {
+			panic("order by [" + orderBy + "] 存在 SQL 注入风险, 如想避免 SQL 注入校验，可以调用 UnsafeOrderBy")
+		}
 		p.orderBy = orderBy
 	}
 }
 
 // UnsafeOrderBy 不安全的设置排序方法，如果从前端接收参数，请自行做好注入校验。
-// Deprecated: Do not use. use databasex/page.go instead.
 func UnsafeOrderBy(orderBy string) Option {
 	return func(p *Page) {
 		p.orderBy = orderBy
 	}
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
+func OrderByOnly(orderByOnly bool) Option {
+	return func(p *Page) {
+		p.orderByOnly = orderByOnly
+	}
+}
+
 func NewPage(pageNum uint64, pageSize uint64, opts ...Option) (*Page, error) {
 	if pageNum == 0 {
 		return nil, errors.New("pageNum is zero")
@@ -97,32 +100,26 @@ func NewPage(pageNum uint64, pageSize uint64, opts ...Option) (*Page, error) {
 	return p, nil
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) PageNum() uint64 {
 	return p.pageNum
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) PageSize() uint64 {
 	return p.pageSize
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) Offset() uint64 {
 	return p.offset
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) Limit() uint64 {
 	return p.limit
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) Total() uint64 {
 	return p.total
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) SetTotal(total uint64) {
 	p.total = total
 	if total%p.pageSize == 0 {
@@ -132,22 +129,18 @@ func (p *Page) SetTotal(total uint64) {
 	}
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) Pages() uint64 {
 	return p.pages
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) Count() bool {
 	return p.count
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) CountColumn() string {
 	return p.countColumn
 }
 
-// Deprecated: Do not use. use databasex/page.go instead.
 func (p *Page) OrderBy() string {
 	return p.orderBy
 }
